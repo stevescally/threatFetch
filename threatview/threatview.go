@@ -4,6 +4,8 @@ import (
 	"github.com/pterm/pterm"
 	"log"
 	"os"
+    "time"
+    "path/filepath"
 )
 
 var (
@@ -21,38 +23,39 @@ var (
 )
 
 func Download(pathName string) {
-	pterm.Info.Println("Threatview.io: Downloading")
-	pterm.Info.Println("Download Directory: ", pathName)
+	pterm.Info.Println("Threatview.io: Downloading Feeds")
 
 	// Confirm path and directory exists
-	// Pass confirmed/created full path to downloader
 	fullPath, err := createDataDir(pathName, dataDir)
    
     if err != nil {
         log.Fatal(err)
         os.Exit(1)
     }
-    // Call downloader pass path and list of URL's
-    // only return err status
-    downloader(fullPath, *feedURL)
 
-	pterm.Info.Println("Full Path: ", fullPath)
-	pterm.Info.Println("Error: ", err)
+	// Pass confirmed/created full path to downloader
+    downloader(fullPath, feedURL)
+
 
 }
 
-func downloader(path string, f ) {
+func downloader(path string, feedURL map[string]string ) {
 
-    for id, url := range *f {
-        
-        fmt.Println(id, url)
+    p, _ := pterm.DefaultProgressbar.WithTotal(len(feedURL)).WithTitle("Download Status").WithRemoveWhenDone(true).Start()
+
+    for name, url := range feedURL {
+        file := filepath.Base(url)
+        p.UpdateTitle("Downloading " + name + "from " + url)
+        pterm.Success.Println("Downloading " + name + " to filename " + file)
+        p.Increment()
+        time.Sleep(time.Millisecond * 550)
     }
+
+    //p.Stop()
 
 }
 
 func createDataDir(path string, dir string) (string, error) {
-	pterm.Info.Println("Path: ", path)
-	pterm.Info.Println("Directory: ", dir)
 
 	fullPath := (path + "/" + dir)
 
