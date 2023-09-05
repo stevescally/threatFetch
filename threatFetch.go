@@ -1,14 +1,15 @@
 package main
 
 import (
-	"os"
 	"flag"
 	"github.com/pterm/pterm"
 	"github.com/stevescally/threatFetch/threatview"
+	"os"
 )
 
 var (
-	pathName = flag.String("p", "", "Pathname location of downloaded threat feed data. Default is current working directory.")
+	pathName = flag.String("p", "", "Pathname location where threat feed data exists or will be downloaded."+
+		"\nDefault: <current working directory>/threatview_data")
 )
 
 func main() {
