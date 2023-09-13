@@ -14,17 +14,6 @@ var (
 
 func main() {
 
-	// Threatview.io will be the default feed
-	// Print banner of goGetThreatFeed
-	// process arguments
-	//  - Debug or info logging(default)
-	// Based on input argument call other functionality
-	//   Create threatview.io package
-	//   Have all functions that relate to:
-	//     - Checking if download directory exists
-	//     - What is the date/time on the current files
-	//     - Download the list of available files
-
 	// Generate BigLetters
 	pterm.Println()
 	s, _ := pterm.DefaultBigText.WithLetters(pterm.NewLettersFromString("Threat Fetch")).Srender()

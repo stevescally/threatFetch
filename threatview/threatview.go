@@ -1,14 +1,25 @@
 package threatview
 
 import (
-	_ "fmt"
 	"github.com/pterm/pterm"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"reflect"
 	"time"
 )
+
+type ThreatView struct {
+	dataDir  string
+	dataPath string
+	date     string
+	feeds    []Feed
+}
+
+type Feed struct {
+	name, filename, url string
+}
 
 var (
 	dataDir string = "threatview_data"
@@ -27,41 +38,62 @@ var (
 func Download(pathName string) {
 	pterm.Info.Println("Threatview.io: Downloading Feeds")
 
+	tf := newThreatview(pathName, feedURL, dataDir)
+
+	//pterm.Info.Println(tf)
+
 	// Determine if pathName exists. If it doesn't then dataDir also
 	// does not exist.
-	_, err := os.Stat(pathName)
-	pterm.Error.Println(err)
-
-	fullPath := (pathName + "/" + dataDir)
+	_, err := os.Stat(tf.dataPath)
 
 	if err != nil {
 		// Create pathName and dataDir
-		createDataDir(fullPath)
+		createDataDir(tf.dataPath)
 
 		// Download feed data to pathName
-		downloader(fullPath, feedURL)
+		downloader(tf)
 	} else {
+		pterm.Debug.Println("Directory exists.")
 
 		// If fullPath does exist we need to check existing files timestamp
 		// as files are only generated once a day @ 11PM UTC.
-		dailyGenerationCheck(fullPath, feedURL)
+		dailyGenerationCheck(tf)
 	}
 
 }
 
-func downloader(path string, feedURL map[string]string) {
+func newThreatview(path string, feedURL map[string]string, dataDir string) *ThreatView {
+
+	t := new(ThreatView)
+	t.dataDir = path
+	t.dataPath = (path + "/" + dataDir)
+	t.date = time.Now().Format(time.DateOnly)
+	t.feeds = make([]Feed, 0)
+
+	for name, url := range feedURL {
+		f := Feed{
+			name:     name,
+			filename: filepath.Base(url),
+			url:      url,
+		}
+		t.feeds = append(t.feeds, f)
+	}
+
+	return t
+}
+
+func downloader(tf *ThreatView) {
 
 	// Set file download progress bar
 	p, _ := pterm.DefaultProgressbar.WithTotal(len(feedURL)).WithTitle("Download Status").WithRemoveWhenDone(true).Start()
 
-	for name, url := range feedURL {
-		filename := filepath.Base(url)
-		p.UpdateTitle("Downloading " + name + " from " + url)
+	for entry, _ := range tf.feeds {
+		p.UpdateTitle("Downloading " + tf.feeds[entry].name + " from " + tf.feeds[entry].url)
 
-		feed_data, err := http.Get(url)
+		feed_data, err := http.Get(tf.feeds[entry].url)
 
 		if err != nil {
-			pterm.Error.Println("Error accessing threat feed: " + name)
+			pterm.Error.Println("Error accessing threat feed: " + tf.feeds[entry].name)
 		}
 
 		defer feed_data.Body.Close()
@@ -69,12 +101,11 @@ func downloader(path string, feedURL map[string]string) {
 		// Check response code to determine if file was accessible.
 		if feed_data.StatusCode != 404 {
 
-			date_stamp := time.Now().Format(time.DateOnly)
-			file := path + "/" + date_stamp + "-" + filename
+			file := (tf.dataPath + "/" + tf.date + "-" + tf.feeds[entry].filename)
 			f, err := os.Create(file)
 
 			if err != nil {
-				pterm.Error.Println("Error creating file: " + filename)
+				pterm.Error.Println("Error creating file: " + tf.feeds[entry].filename)
 			}
 
 			defer f.Close()
@@ -82,12 +113,12 @@ func downloader(path string, feedURL map[string]string) {
 			_, err = io.Copy(f, feed_data.Body)
 
 			if err != nil {
-				pterm.Error.Println("Error with file data: " + filename)
+				pterm.Error.Println("Error with file data: " + tf.feeds[entry].filename)
 			}
 
-			pterm.Success.Println(name + " -> " + file)
+			pterm.Success.Println(tf.feeds[entry].name + " -> " + file)
 		} else {
-			pterm.Error.Println("Error downloading " + url + ". Status: " + feed_data.Status)
+			pterm.Error.Println("Error downloading " + tf.feeds[entry].url + ". Status: " + feed_data.Status)
 		}
 
 		p.Increment()
@@ -107,33 +138,60 @@ func createDataDir(path string) {
 	pterm.Debug.Println("Directory created or already exists. " + path)
 }
 
-func dailyGenerationCheck(fullPath string, feedURL map[string]string) {
+func dailyGenerationCheck(tf *ThreatView) {
 
-	date_stamp := time.Now().Format(time.DateOnly)
-	var filenames []string
+	// empty struct for missing files
+	var missing_tf ThreatView
+	missing_tf.dataDir = tf.dataDir
+	missing_tf.dataPath = tf.dataPath
+	missing_tf.date = tf.date
+	missing_tf.feeds = make([]Feed, 0)
+	pterm.Debug.Println(missing_tf)
 
-	for _, url := range feedURL {
-		filename := (date_stamp + "-" + filepath.Base(url))
-		pterm.Info.Println("Filename: " + filename)
-		filenames = append(filenames, filename)
+	// Loop through feed files/urls to check if todays exists
+	for f, _ := range tf.feeds {
+		// create full file path for os.Stat
+		file := (tf.dataPath + "/" + tf.date + "-" + tf.feeds[f].filename)
+
+		// Call os.Stat on file
+		fs, err := os.Stat(file)
+
+		pterm.Debug.Println(fs)
+
+		if fs == nil {
+			pterm.Error.Println(err)
+			f := Feed{
+				name:     tf.feeds[f].name,
+				filename: tf.feeds[f].filename,
+				url:      tf.feeds[f].url,
+			}
+			missing_tf.feeds = append(missing_tf.feeds, f)
+
+		}
+
+		pterm.Debug.Println(missing_tf)
+		pterm.Debug.Println(len(missing_tf.feeds))
+
 	}
 
-	pterm.Info.Println(filenames)
-	pterm.Info.Println(len(filenames))
+	// Compare missing_tf to passed tf. If same, call downloader with tf
+	// else call downloader with missing_tf
 
-	//filenames := feedFileSearch(filenames)
+	if reflect.DeepEqual(tf, missing_tf) {
+		downloader(tf)
+	} else if len(missing_tf.feeds) != 0 {
+		downloader(&missing_tf)
+	} else {
+		pterm.Success.Println("All feed data updated.")
+	}
 
-	//pterm.Info.Println("Passed path: " + fullPath)
-	//pterm.Info.Println("Passed map: " + feedURL)
-	/*
-	   1. Generate "Todays" date (yyyy-mm-dd)
+}
+
+/*
+	   1. Use os.Stat to check that the filename exists
+       2. If it doesn't add it to
 	   2. If files do not exist with todays date call downloader to get files
 	   3. If files exist with todays date, check that we have all (8) files
 	   4. If any files are missing build missingFeedURL, call downloader to get them.
 	   5. If no files are missing, report files are up-to-date.
-	*/
-}
-
-//func feedFileSearch(filenames string[]) string[] {
-
-//}
+*/
