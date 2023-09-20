@@ -186,12 +186,3 @@ func dailyGenerationCheck(tf *ThreatView) {
 	}
 
 }
-
-/*
-	   1. Use os.Stat to check that the filename exists
-       2. If it doesn't add it to
-	   2. If files do not exist with todays date call downloader to get files
-	   3. If files exist with todays date, check that we have all (8) files
-	   4. If any files are missing build missingFeedURL, call downloader to get them.
-	   5. If no files are missing, report files are up-to-date.
-*/
