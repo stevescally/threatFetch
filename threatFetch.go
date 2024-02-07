@@ -4,6 +4,7 @@ import (
 	"flag"
 	"github.com/pterm/pterm"
 	"github.com/stevescally/threatFetch/threatview"
+	"github.com/stevescally/threatFetch/greensnow"
 	"os"
 )
 
@@ -34,6 +35,7 @@ func main() {
 		*pathName = cdir
 	}
 
-	// Call ThreatFeed.io Downloader
+	// Call threat feed downloader
 	threatview.Download(*pathName)
+  greensnow.Download(*pathName)
 }
