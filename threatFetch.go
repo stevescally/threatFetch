@@ -10,7 +10,7 @@ import (
 
 var (
 	pathName = flag.String("p", "", "Pathname location where threat feed data exists or will be downloaded."+
-		"\nDefault: <current working directory>/threatview_data")
+		"\nDefault: <current working directory>/<feed_name>_data")
 )
 
 func main() {
