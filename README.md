@@ -2,7 +2,7 @@
 
 ## Overview
 
-Gather "threat"" intel feeds from multiple publicly available sources.
+Gather "threat" intel feeds from multiple publicly available sources.
 
 ## Functionality
 
@@ -28,6 +28,10 @@ The *Default* option is to download to the current working directory.
   - SHAFilehashBlocklist
 - [greensnow.co](https://www.greensnow.co/) (1) feed
   - IPBlocklist
+- [rescure.me](https://rescure.me/feeds.html) (3) feeds
+  - Malicious IP Blacklist
+  - Malicious Domain Blacklist
+  - Malware Hashes
 
 ### Planned
 
@@ -104,10 +108,10 @@ PARTICULAR PURPOSE.
 
 ###### Feed Data
 
-The feeds currently implemented use only publicly available sources and where indicated,
-to the best of any ability, the proper abuse limitations have been added, such as checking 
-if the feed has previously been downloaded. 
+The feeds currently implemented use only publicly available sources and where
+indicated, to the best of any ability, the proper abuse limitations have been
+added, such as checking if the feed has previously been downloaded. 
 
 Assume the feeds are for non-commercial use, unless explicitly indicated
 otherwise by referencing the individual feed site for their terms and
-conditions.  
+conditions.

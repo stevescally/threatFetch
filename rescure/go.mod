@@ -1,19 +1,8 @@
-module github.com/stevescally/threatFetch
+module github.com/stevescally/threatFetch/rescure
 
 go 1.22.0
 
-replace github.com/stevescally/threatFetch/threatview => ./threatview
-
-replace github.com/stevescally/threatFetch/greensnow => ./greensnow
-
-replace github.com/stevescally/threatFetch/rescure => ./rescure
-
-require (
-	github.com/pterm/pterm v0.12.79
-	github.com/stevescally/threatFetch/greensnow v0.0.0-00010101000000-000000000000
-	github.com/stevescally/threatFetch/rescure v0.0.0-00010101000000-000000000000
-	github.com/stevescally/threatFetch/threatview v0.0.0-00010101000000-000000000000
-)
+require github.com/pterm/pterm v0.12.79
 
 require (
 	atomicgo.dev/cursor v0.2.0 // indirect

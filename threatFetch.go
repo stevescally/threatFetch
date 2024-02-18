@@ -5,6 +5,7 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/stevescally/threatFetch/threatview"
 	"github.com/stevescally/threatFetch/greensnow"
+	"github.com/stevescally/threatFetch/rescure"
 	"os"
 )
 
@@ -38,4 +39,5 @@ func main() {
 	// Call threat feed downloader
 	threatview.Download(*pathName)
   greensnow.Download(*pathName)
+  rescure.Download(*pathName)
 }
